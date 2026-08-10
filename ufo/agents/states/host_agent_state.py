@@ -29,7 +29,6 @@ class HostAgentStatus(Enum):
     ASSIGN = "ASSIGN"
     FAIL = "FAIL"
     PENDING = "PENDING"
-    CONFIRM = "CONFIRM"
 
 
 class HostAgentStateManager(AgentStateManager):

@@ -42,7 +42,6 @@ class AgentStatus(Enum):
     CONTINUE = "CONTINUE"
     FAIL = "FAIL"
     PENDING = "PENDING"
-    CONFIRM = "CONFIRM"
     SCREENSHOT = "SCREENSHOT"
 
 

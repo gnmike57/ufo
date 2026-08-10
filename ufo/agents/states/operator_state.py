@@ -35,7 +35,6 @@ class OpenAIOperatorStatus(Enum):
     FINISH = "FINISH"
     CONTINUE = "CONTINUE"
     PENDING = "PENDING"
-    CONFIRM = "CONFIRM"
     ALLFINISH = "ALLFINISH"
 
 
@@ -275,77 +274,6 @@ class PendingOpenAIOperatorState(OpenAIOperatorState):
         :return: The name of the state.
         """
         return OpenAIOperatorStatus.PENDING.value
-
-
-@OpenAIOperatorStateManager.register
-class ConfirmOpenAIOperatorState(OpenAIOperatorState):
-    """
-    The class for the confirm app agent state.
-    """
-
-    def __init__(self) -> None:
-        """
-        Initialize the confirm state.
-        """
-        self._confirm = None
-
-    def handle(
-        self, agent: "OpenAIOperatorAgent", context: Optional["Context"] = None
-    ) -> None:
-        """
-        Handle the agent for the current step.
-        :param agent: The agent for the current step.
-        :param context: The context for the agent and session.
-        """
-
-        # If the safe guard is not enabled, the agent should resume the task.
-        if not ufo_config.system.safe_guard:
-            agent.process_resume()
-            self._confirm = True
-
-            return
-
-        self._confirm = agent.process_confirmation()
-        # If the user confirms the action, the agent should resume the task.
-        if self._confirm:
-            agent.process_resume()
-
-    def next_state(self, agent: OpenAIOperatorAgent) -> OpenAIOperatorState:
-        """
-        Get the next state of the agent.
-        :param agent: The agent for the current step.
-        :return: The state for the next step.
-        """
-
-        plan = agent.processor.plan
-
-        # If the plan is not empty and the plan contains the finish status, it means the task is finished.
-        # The next state should be FinishOpenAIOperatorState.
-        if len(plan) > 0 and OpenAIOperatorStatus.FINISH.value in plan[0]:
-            agent.status = OpenAIOperatorStatus.FINISH.value
-            return FinishOpenAIOperatorState()
-
-        if self._confirm:
-            agent.status = OpenAIOperatorStatus.CONTINUE.value
-            return ContinueOpenAIOperatorState()
-        else:
-            agent.status = OpenAIOperatorStatus.FINISH.value
-            return FinishHostAgentState()
-
-    def is_subtask_end(self) -> bool:
-        """
-        Check if the subtask ends.
-        :return: True if the subtask ends, False otherwise.
-        """
-        return False
-
-    @classmethod
-    def name(cls) -> str:
-        """
-        The class name of the state.
-        :return: The name of the state.
-        """
-        return OpenAIOperatorStatus.CONFIRM.value
 
 
 @OpenAIOperatorStateManager.register

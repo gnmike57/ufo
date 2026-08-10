@@ -37,7 +37,6 @@ class AppAgentStatus(Enum):
     CONTINUE = "CONTINUE"
     FAIL = "FAIL"
     PENDING = "PENDING"
-    CONFIRM = "CONFIRM"
     SCREENSHOT = "SCREENSHOT"
 
 
@@ -295,69 +294,6 @@ class PendingAppAgentState(AppAgentState):
         :return: The name of the state.
         """
         return AppAgentStatus.PENDING.value
-
-
-@AppAgentStateManager.register
-class ConfirmAppAgentState(AppAgentState):
-    """
-    The class for the confirm app agent state.
-    """
-
-    def __init__(self) -> None:
-        """
-        Initialize the confirm state.
-        """
-        self._confirm = None
-
-    async def handle(
-        self, agent: "AppAgent", context: Optional["Context"] = None
-    ) -> None:
-        """
-        Handle the agent for the current step.
-        :param agent: The agent for the current step.
-        :param context: The context for the agent and session.
-        """
-
-        # If the safe guard is not enabled, the agent should resume the task.
-        if not ufo_config.system.safe_guard:
-            await agent.process_resume()
-            self._confirm = True
-
-            return
-
-        self._confirm = agent.process_confirmation()
-        # If the user confirms the action, the agent should resume the task.
-        if self._confirm:
-            await agent.process_resume()
-
-    def next_state(self, agent: AppAgent) -> AppAgentState:
-        """
-        Get the next state of the agent.
-        :param agent: The agent for the current step.
-        :return: The state for the next step.
-        """
-
-        if self._confirm:
-            agent.status = AppAgentStatus.CONTINUE.value
-            return ContinueAppAgentState()
-        else:
-            agent.status = AppAgentStatus.FINISH.value
-            return FinishAppAgentState()
-
-    def is_subtask_end(self) -> bool:
-        """
-        Check if the subtask ends.
-        :return: True if the subtask ends, False otherwise.
-        """
-        return False
-
-    @classmethod
-    def name(cls) -> str:
-        """
-        The class name of the state.
-        :return: The name of the state.
-        """
-        return AppAgentStatus.CONFIRM.value
 
 
 @AppAgentStateManager.register

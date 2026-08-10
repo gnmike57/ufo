@@ -13,6 +13,7 @@ rogue instructions through template placeholders.
 
 import logging
 import re
+from ufo.config import get_config
 
 logger = logging.getLogger(__name__)
 
@@ -78,6 +79,10 @@ def sanitize_user_input(value: str, field_name: str = "input") -> str:
     str
         The sanitized string, safe for interpolation into a prompt template.
     """
+    configs = get_config()
+    if not configs.get("ENABLE_PROMPT_SANITIZER", False):
+        return value
+
     if not isinstance(value, str):
         logger.warning(
             "sanitize_user_input called with non-string value (type=%s) for field '%s'",

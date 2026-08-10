@@ -727,22 +727,7 @@ class HostLLMInteractionStrategy(BaseProcessingStrategy):
             raise ValueError("Response missing required 'status' field")
 
         # Validate status values
-        valid_statuses = ["CONTINUE", "FINISH", "CONFIRM", "ERROR", "ASSIGN"]
-        
-        # Auto-correct PENDING hallucination from local LLMs
-        if response.status.upper() == "PENDING":
-            comment = str(response.comment).lower()
-            thought = str(response.thought).lower()
-            if "openapp" in comment or "openapp" in thought or "open" in comment or "open" in thought:
-                response.status = "CONTINUE"
-                response.function = "run_shell"
-                app_name = "calc" # generic fallback
-                if "calculator" in comment or "calculator" in thought:
-                    app_name = "calc"
-                elif "notepad" in comment or "notepad" in thought:
-                    app_name = "notepad"
-                response.arguments = {"bash_command": f"start {app_name}"}
-                self.logger.info(f"Auto-corrected PENDING status to CONTINUE with run_shell for {app_name}")
+        valid_statuses = ["CONTINUE", "FINISH", "ERROR", "ASSIGN"]
 
         if response.status.upper() not in valid_statuses:
             self.logger.warning(f"Unexpected status value: {response.status}")
